@@ -1,17 +1,21 @@
 const mongoClient = require("./mongoConnect");
 const _client = mongoClient.connect();
 
+// 회원가입
 const Users = {
-  register: async (registerInfo) => {
+  register: async (signupInfo) => {
     const client = await _client;
     const db = client.db("login").collection("users");
-    let registerUser = {};
-    registerUser = {
-      type: registerInfo.type,
-      email: registerInfo.email,
-      nickName: registerInfo.nickName,
+    let signupUser = {};
+    signupUser = {
+      name: signupInfo.name,
+      type: signupInfo.type,
+      email: signupInfo.email,
+      password: signupInfo.password,
+      interstedLi: signupInfo.interstedLi,
     };
-    const result = await db.insertOne(registerUser);
+
+    const result = await db.insertOne(signupUser);
     if (result.acknowledged) {
       return {
         duplicated: false,
@@ -22,6 +26,7 @@ const Users = {
     }
   },
 
+  // 로그인 페이지
   login: async (loginInfo) => {
     const client = await _client;
     const db = client.db("login").collection("users");
@@ -31,7 +36,7 @@ const Users = {
         return {
           result: true,
           email: findID.email,
-          nickName: findID.nickName,
+          name: findID.name,
           msg: "로그인 성공!",
         };
       } else {
@@ -44,33 +49,6 @@ const Users = {
       return {
         result: false,
         msg: "해당 E-Mail을 찾을 수 없습니다!",
-      };
-    }
-  },
-
-  register: async (registerInfo) => {
-    const client = await _client;
-    const db = client.db("login").collection("users");
-    const duplicated = await db.findOne({ email: registerInfo.email });
-    if (!duplicated) {
-      const registerUser = {
-        type: registerInfo.type,
-        email: registerInfo.email,
-      };
-      const registerResult = await db.insertOne(registerUser);
-
-      if (registerResult.acknowledged) {
-        return {
-          duplicated: false,
-          msg: "회원 가입 완료!",
-        };
-      } else {
-        throw new Error("DB문제 발생");
-      }
-    } else {
-      return {
-        duplicated: true,
-        msg: "이미 가입 된 회원입니다.",
       };
     }
   },
