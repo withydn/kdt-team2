@@ -13,10 +13,12 @@ app.use(cors());
 // 회원 가입, 로그인은 userRouter 에서 처리!
 
 const userRouter = require("./routes/login");
-const registerRouter = require("./routes/signup");
+const signupRouter = require("./routes/signup");
+const boardRouter = require("./routes/board");
 
 app.use("/login", userRouter);
-app.use("/register", registerRouter);
+app.use("/register", signupRouter);
+app.use("/board", boardRouter);
 
 app.listen(PORT, () => {
   console.log(`데이터 통신 서버가 ${PORT}에서 작동 중입니다!`);
