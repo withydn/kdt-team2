@@ -21,12 +21,12 @@ const POST = [
   },
 ];
 
-// 현재 localhost:4500/review
+// 현재 localhost:4500/board
 router.get("/", (req, res) => {
-  res.render("review", { POST, postCounts: POST.length });
+  res.render("board", { POST, postCounts: POST.length });
 });
 
-// localhost:4500/review/list
+// localhost:4500/board
 // 목록 보여주기
 router.get("/", (req, res) => {
   res.send(POST);
@@ -41,7 +41,7 @@ router.get("/content/:content", (req, res) => {
   if (findpost) {
     res.send(findpost);
   } else {
-    const err = new Error("TITLE을 찾을수 없습니다!");
+    const err = new Error("게시글을 찾을수 없습니다");
     throw err;
   }
 });
@@ -58,7 +58,7 @@ router.post("/", (req, res) => {
         recommend: req.body.recommend,
       };
       POST.push(newPost);
-      res.redirect("/review");
+      res.redirect("/board");
     } else {
       console.log(2);
       const err = new Error("Unexpected query");
@@ -67,18 +67,6 @@ router.post("/", (req, res) => {
   } else {
     console.log(2);
     const err = new Error("no data");
-    throw err;
-  }
-});
-
-// post 삭제하기
-router.delete("/:title", (req, res) => {
-  const arrIndex = POST.findIndex((post) => post.content === req.body.content);
-  if (arrIndex !== -1) {
-    POST.splice(arrIndex, 1);
-    res.send("POST 삭제 완료");
-  } else {
-    const err = new Error("POST를 찾을수 없습니다!");
     throw err;
   }
 });

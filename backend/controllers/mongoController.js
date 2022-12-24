@@ -1,3 +1,5 @@
+// @ts-check
+
 const mongoClient = require("./mongoConnect");
 const _client = mongoClient.connect();
 
@@ -51,6 +53,14 @@ const Users = {
         msg: "해당 E-Mail을 찾을 수 없습니다!",
       };
     }
+  },
+
+  deleteArticle: async (id) => {
+    const client = await mongoClient.connect();
+    const board = client.db("kdt4").collection("board");
+    const deleteResult = await board.deleteOne({ _id: ObjectId(id) });
+    if (!deleteResult.acknowledged) throw new Error("삭제 실패");
+    return true;
   },
 };
 
