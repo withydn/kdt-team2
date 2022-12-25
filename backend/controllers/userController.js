@@ -5,30 +5,35 @@ const _client = mongoClient.connect();
 
 // 회원가입
 const Users = {
-  register: async (signupInfo) => {
+  register: async (registerInfo) => {
     const client = await _client;
     const db = client.db("login").collection("users");
-    let signupUser = {};
-    signupUser = {
-      name: signupInfo.name,
-      type: signupInfo.type,
-      email: signupInfo.email,
-      password: signupInfo.password,
-      interstedLi: signupInfo.interstedLi,
+    const signupUser = {
+      name: registerInfo.name,
+      email: registerInfo.email,
+      password: registerInfo.password,
+      region: registerInfo.region,
     };
+
+    const duplicated = await db.findOne({ email: signupUser.email });
+    if (duplicated)
+      return { result: false, msg: "동일한 이메일을 가진 회원이 존재합니다." };
 
     const result = await db.insertOne(signupUser);
     if (result.acknowledged) {
       return {
-        duplicated: false,
+        result: true,
         msg: "회원 가입 성공! 로그인 페이지로 이동 합니다.",
       };
     } else {
-      throw new Error("통신 이상");
+      return {
+        result: false,
+        msg: "알 수 없는 에러 발생",
+      };
     }
   },
 
-  // 로그인 페이지
+  // 로그인 처리
   login: async (loginInfo) => {
     const client = await _client;
     const db = client.db("login").collection("users");
@@ -38,7 +43,6 @@ const Users = {
         return {
           result: true,
           email: findID.email,
-          name: findID.name,
           msg: "로그인 성공!",
         };
       } else {
