@@ -10,8 +10,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-// 회원 가입, 로그인은 userRouter 에서 처리!
-
 const userRouter = require("./routes/login");
 const signupRouter = require("./routes/signup");
 const boardRouter = require("./routes/board");
