@@ -2,98 +2,55 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../controllers/reviewController");
+const fs = require("fs");
 
 router.post("/write", async (req, res) => {
   const postInfo = req.body;
+  console.log(postInfo);
   const result = await db.reviewWrite(postInfo);
   res.send(JSON.stringify(result));
 });
-
-// const POST = [
-//   {
-//     items: "제주",
-//     content: "제주도 겨울여행!",
-//     reviewer: "pororo",
-//     regidate: { type: Date, default: new Date() },
-//     recommend: 0,
-//     comment: [
-//       {
-//         username: String, // 댓글 작성자 이름
-//         comment: String, // 댓글 내용
-//         date: { type: Date, default: new Date() }, // 작성 시간
-//       },
-//     ],
-//   },
-// ];
-
-// // 현재 localhost:4500/board
-// router.get("/", (req, res) => {
-//   res.render("board", { POST, postCounts: POST.length });
-// });
-
-// // localhost:4500/board
-// // 목록 보여주기
-// router.get("/", (req, res) => {
-//   res.send(POST);
-// });
-
-// // 정보 조회
-// router.get("/content/:content", (req, res) => {
-//   const findpost = POST.find((post) => {
-//     console.log(post);
-//     return post.content === req.params.content;
-//   });
-//   if (findpost) {
-//     res.send(findpost);
-//   } else {
-//     const err = new Error("게시글을 찾을수 없습니다");
-//     throw err;
-//   }
-// });
-
-// // 새로운 POST 등록 @@
-// router.post("/", (req, res) => {
-//   if (req.body) {
-//     if (req.body.items && req.body.content) {
-//       const newPost = {
-//         items: req.body.items,
-//         content: req.body.content,
-//         reviewer: req.body.reviewer,
-//         regidate: req.body.regidate,
-//         recommend: req.body.recommend,
-//       };
-//       POST.push(newPost);
-//       res.redirect("/board");
-//     } else {
-//       console.log(2);
-//       const err = new Error("Unexpected query");
-//       throw err;
-//     }
-//   } else {
-//     console.log(2);
-//     const err = new Error("no data");
-//     throw err;
-//   }
-// });
-
-// // 댓글 달기
-// router.post("/comment/add", async (req, res) => {
-//   let user = await Users.findOne({ reviewer: req.body.reviewer }); // 댓글 작성할 유저
-//   let comment = await Comment.findOne({ comment: req.body.comment });
-
-//   comment.comment.push({
-//     username: user.name,
-//     content: req.body.content,
-//   });
-//   try {
-//     await comment.save(); //
-//     return res.status(200).json({ message: "success" });
-//   } catch (e) {
-//     return res.status(500).json({ message: "Fail" });
-//   }
-// });
-
-// // 댓글 삭제하기
-// router.delete("/comment/add", (req, res) => {});
-
+// 모든 게시글 데이터를 받아오는 라우터
+router.get("/getAll", async (req, res) => {
+  const allReview = await db.getAllArticles();
+  res.send(allReview);
+});
+router.get("/:no", async (req, res) => {
+  const review = await db.getArticle(req.params.no);
+  res.send(review);
+});
+// 좋아요 + 1
+router.post("/addLike/:no", async (req, res) => {
+  const addLiseResult = await db.addLike(req.params.no);
+  res.send(JSON.stringify(addLiseResult));
+});
+// 게시글 쓰기 페이지 이동
+router.get("/write", (req, res) => {
+  res.render("dbBoard_write");
+});
+// 게시글 수정 페이지로 이동
+router.get("/modify/:id", async (req, res) => {
+  const findArticle = await db.getArticle(req.params.id);
+  console.log(findArticle);
+  if (findArticle) {
+    res.render("dbBoard_modify", { selectedArticle: findArticle });
+  }
+});
+// 게시글 삭제
+router.delete("/delete/:id", async (req, res) => {
+  if (req.params.id) {
+    const deleteResult = await db.deleteArticle(req.params.id);
+    if (deleteResult) {
+      res.send("삭제 완료");
+    } else {
+      const err = new Error("글 삭제 실패");
+      err.statusCode = 404;
+      throw err;
+    }
+  } else {
+    const err = new Error("ID 파라미터 값이 없습니다!");
+    err.statusCode = 404;
+    throw err;
+  }
+});
 module.exports = router;
