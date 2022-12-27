@@ -3,7 +3,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("../controllers/reviewController");
 const fs = require("fs");
-
 router.post("/write", async (req, res) => {
   const postInfo = req.body;
   console.log(postInfo);
@@ -21,8 +20,13 @@ router.get("/:no", async (req, res) => {
 });
 // 좋아요 + 1
 router.post("/addLike/:no", async (req, res) => {
-  const addLiseResult = await db.addLike(req.params.no);
-  res.send(JSON.stringify(addLiseResult));
+  const addLikeResult = await db.addLike(req.params.no);
+  res.send(JSON.stringify(addLikeResult));
+});
+// 카운트 + 1
+router.post("/addCount/:no", async (req, res) => {
+  const addCountResult = await db.addCount(req.params.no);
+  res.send(JSON.stringify(addCountResult));
 });
 // 게시글 쓰기 페이지 이동
 router.get("/write", (req, res) => {
