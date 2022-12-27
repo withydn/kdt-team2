@@ -52,7 +52,7 @@ const Reviews = {
   getArticle: async (no) => {
     const client = await mongoClient.connect();
     const board = client.db("review").collection("review");
-    const findArticle = await board.findOne({ no: no });
+    const findArticle = await board.findOne({ no: parseInt(no) });
     if (!findArticle) return false;
     return findArticle;
   },
@@ -61,7 +61,7 @@ const Reviews = {
     const client = await mongoClient.connect();
     const board = client.db("review").collection("review");
     const addLikeResult = await board.updateOne(
-      { no: no },
+      { no: parseInt(no) },
       {
         $inc: {
           like: 1,
@@ -69,6 +69,24 @@ const Reviews = {
       }
     );
     if (addLikeResult.acknowledged) {
+      return "업데이트 성공";
+    } else {
+      return "업데이트 실패";
+    }
+  },
+  // 카운트 +1
+  addCount: async (no) => {
+    const client = await mongoClient.connect();
+    const board = client.db("review").collection("review");
+    const addCountResult = await board.updateOne(
+      { no: parseInt(no) },
+      {
+        $inc: {
+          counts: 1,
+        },
+      }
+    );
+    if (addCountResult.acknowledged) {
       return "업데이트 성공";
     } else {
       return "업데이트 실패";
