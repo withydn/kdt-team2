@@ -122,5 +122,62 @@ const Reviews = {
     if (!deleteResult.acknowledged) throw new Error("게시글 삭제 실패");
     return true;
   },
+
+  commentArticle: async (no, comment) => {
+    const client = await mongoClient.connect();
+    const board = client.db("review").collection("review");
+    const addComentResult = await board.updateOne(
+      { no: no },
+      { $push: { comments: comment } }
+    );
+    if (addComentResult.acknowledged) {
+      return {
+        result: true,
+        msg: "댓글 등록 성공",
+      };
+    } else {
+      return {
+        result: false,
+        msg: "댓글 등록 실패",
+      };
+    }
+  },
+
+  deleteComment: async (no, author, comment) => {
+    const client = await mongoClient.connect();
+    const board = client.db("review").collection("review");
+    const deleteCommentResult = await board.updateOne(
+      { no: no },
+      { $pull: { comments: { author: author, comment: comment } } }
+    );
+    if (deleteCommentResult.acknowledged) {
+      return {
+        result: true,
+        msg: "댓글 삭제 성공",
+      };
+    } else {
+      return {
+        result: false,
+        msg: "댓글 삭제 실패",
+      };
+    }
+  },
+
+  // getCommentArticle: async (no) => {
+  //   const client = await mongoClient.connect();
+  //   const board = client.db("review").collection("review");
+  //   const findReview = await board.findOne({ no: no });
+  //   if (findReview) {
+  //     return {
+  //       result: true,
+  //       comments: findReview.comments,
+  //     };
+  //   } else {
+  //     return {
+  //       result: false,
+  //       msg: "해당 넘버의 리뷰가 없습니다",
+  //     };
+  //   }
+  // },
 };
 module.exports = Reviews;
