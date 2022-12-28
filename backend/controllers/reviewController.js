@@ -5,26 +5,42 @@ const _client = mongoClient.connect();
 const Reviews = {
   reviewWrite: async (review) => {
     const client = await _client;
-    const db = client.db("review").collection("review");
-    const reviewCursor = db.find({});
-    const reviews = await reviewCursor.toArray();
-    const numOfReviews = reviews.length;
-    const reviewPost = {
-      no: numOfReviews + 1,
-      item: review.item,
-      title: review.title,
-      content: review.content,
-      author: review.email,
-      counts: 0,
-      like: 0,
-      registerTime: new Date(),
-    };
-    const result = await db.insertOne(reviewPost);
-    if (result.acknowledged) {
-      return {
-        result: true,
-        msg: "게시글이 등록되었습니다",
+    const countDB = client.db("review").collection("count");
+    const incCountResult = await countDB.updateOne(
+      { id: "count" },
+      { $inc: { count: 1 } }
+    );
+
+    if (incCountResult.acknowledged) {
+      const countData = await countDB.findOne({ id: "count" });
+      if (!countData)
+        return {
+          result: false,
+          msg: "등록 실패",
+        };
+      const reviewPost = {
+        no: countData.count,
+        item: review.item,
+        title: review.title,
+        content: review.content,
+        author: review.email,
+        counts: 0,
+        like: 0,
+        registerTime: new Date(),
       };
+      const db = client.db("review").collection("review");
+      const result = await db.insertOne(reviewPost);
+      if (result.acknowledged) {
+        return {
+          result: true,
+          msg: "게시글이 등록되었습니다",
+        };
+      } else {
+        return {
+          result: false,
+          msg: "등록 실패",
+        };
+      }
     } else {
       return {
         result: false,
@@ -92,37 +108,46 @@ const Reviews = {
       return "업데이트 실패";
     }
   },
-  // 특정 ID를 가지는 게시글 수정하기
-  modifyArticle: async (id, modifyArticle, img) => {
-    try {
-      const client = await mongoClient.connect();
-      const board = client.db("review").collection("review");
-      const finalModifyArticle = {
-        TITLE: modifyArticle.title,
-        CONTENT: modifyArticle.content,
-      };
-      if (img !== undefined) finalModifyArticle.IMAGE = img?.filename;
-      const updateResult = await board.updateOne(
-        { _id: ObjectId(id) },
-        {
-          $set: finalModifyArticle,
-        }
-      );
-      if (!updateResult.acknowledged) throw new Error("게시글 수정 실패");
-      return true;
-    } catch (err) {
-      console.log(err);
-    }
-  },
-  // 특정 ID를 가지는 게시글 삭제하기
-  deleteArticle: async (id) => {
+  // 특정 revireNo 가지는 review 수정하기
+  modifyReview: async (no, modifyReview) => {
     const client = await mongoClient.connect();
     const board = client.db("review").collection("review");
-    const deleteResult = await board.deleteOne({ _id: ObjectId(id) });
-    if (!deleteResult.acknowledged) throw new Error("게시글 삭제 실패");
-    return true;
+    const modifyResult = await board.updateOne(
+      { no: parseInt(no) },
+      {
+        $set: {
+          title: modifyReview.title,
+          content: modifyReview.content,
+          item: modifyReview.item,
+        },
+      }
+    );
+    if (modifyResult.acknowledged) {
+      return { result: true, msg: "리뷰 수정 성공" };
+    } else {
+      return { result: false, msg: "리뷰 수정 실패" };
+    }
   },
 
+  // 특정 reviewNo를 가지는 게시글 삭제하기
+  deleteReview: async (no) => {
+    const client = await mongoClient.connect();
+    const board = client.db("review").collection("review");
+    const deleteResult = await board.deleteOne({ no: parseInt(no) });
+    if (deleteResult.acknowledged) {
+      return {
+        result: true,
+        msg: "리뷰 삭제 성공",
+      };
+    } else {
+      return {
+        result: false,
+        msg: "리뷰 삭제 실패",
+      };
+    }
+  },
+
+  // 댓글 작성하기
   commentArticle: async (no, comment) => {
     const client = await mongoClient.connect();
     const board = client.db("review").collection("review");
@@ -143,6 +168,7 @@ const Reviews = {
     }
   },
 
+  // 댓글 삭제하기
   deleteComment: async (no, author, comment) => {
     const client = await mongoClient.connect();
     const board = client.db("review").collection("review");
