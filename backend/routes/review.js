@@ -34,53 +34,18 @@ router.post("/addCount/:no", async (req, res) => {
   res.send(JSON.stringify(addCountResult));
 });
 
-// 게시글 쓰기 페이지 이동
-router.get("/write", (req, res) => {
-  res.render("dbBoard_write");
-});
-
 // 수정
-// 게시글 수정 페이지로 이동
-router.get("/modify/:id", async (req, res) => {
-  const findArticle = await db.getArticle(req.params.id);
-  console.log(findArticle);
-  if (findArticle) {
-    res.render("dbBoard_modify", { selectedArticle: findArticle });
-  }
-});
-
 // 게시글 수정
-router.post("/modify/:id", async (req, res) => {
-  if (req.body.title && req.body.content) {
-    const modifyResult = await db.modifyArticle(req.params.id, req.body);
-    if (modifyResult) {
-      res.redirect("/review");
-    } else {
-      const err = new Error("내용 수정에 실패하였습니다.");
-      throw err;
-    }
-  } else {
-    const err = new Error("모두 작성하여 주십시오.");
-    throw err;
-  }
+router.post("/modify/:reviewNo", async (req, res) => {
+  const modifyResult = await db.modifyReview(req.params.reviewNo, req.body);
+  res.send(modifyResult);
 });
 
 // 게시글 삭제
-router.delete("/delete/:id", async (req, res) => {
-  if (req.params.id) {
-    const deleteResult = await db.deleteArticle(req.params.id);
-    if (deleteResult) {
-      res.send("삭제 완료");
-    } else {
-      const err = new Error("글 삭제 실패");
-      err.statusCode = 404;
-      throw err;
-    }
-  } else {
-    const err = new Error("ID 파라미터 값이 없습니다!");
-    err.statusCode = 404;
-    throw err;
-  }
+router.post("/delete/:reviewNo", async (req, res) => {
+  console.log(req.params);
+  const deleteResult = await db.deleteReview(req.params.reviewNo);
+  res.send(deleteResult);
 });
 
 // // 댓글 가져오기
