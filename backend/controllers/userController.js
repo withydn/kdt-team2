@@ -67,7 +67,7 @@ const Users = {
     return true;
   },
 
-  // 찜
+  // 찜추가, 제거
   addLike: async (loginInfo) => {
     const client = await _client;
     const db = client.db('login').collection('users');
@@ -76,13 +76,28 @@ const Users = {
     if (findID) {
       if (!findID.likes.includes(loginInfo.contentId)) {
         const addLikeResult = await db.updateOne({ email: loginInfo.email }, { $push: { likes: loginInfo.contentId } });
-        return { msg: '구독하기' };
+        return { msg: '구독취소' };
       } else {
         const deleteLikeResult = await db.updateOne(
           { email: loginInfo.email },
           { $pull: { likes: loginInfo.contentId } }
         );
+        return { msg: '구독하기' };
+      }
+    }
+  },
+
+  // 찜했는지 안했는지 체크
+  isCheck: async (loginInfo) => {
+    const client = await _client;
+    const db = client.db('login').collection('users');
+    const findID = await db.findOne({ email: loginInfo.email });
+
+    if (findID) {
+      if (findID.likes.includes(loginInfo.contentId)) {
         return { msg: '구독취소' };
+      } else {
+        return { msg: '구독하기' };
       }
     }
   },
